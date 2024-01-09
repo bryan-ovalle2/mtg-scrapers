@@ -2,6 +2,7 @@ import requests
 import json
 import pandas as pd
 import re
+from pprint import pprint
 
 
 def string_to_snake_case(input_string):
@@ -15,6 +16,7 @@ def get_archidekt_deck(deck_id):
     deck_json = json.loads(data.text)
     deck_name = deck_json['name']
     cards = deck_json['cards']
+    pprint(deck_json)
 
     deck_list = []
     for i, card in enumerate(cards):
@@ -26,7 +28,9 @@ def get_archidekt_deck(deck_id):
             "cmc": oracle_card['cmc'],
             "colors": ', '.join(oracle_card['colors']),
             "manaCost": oracle_card['manaCost'],
-            "power_toughness": "N/A" if oracle_card['types'] == "Land" else f"{oracle_card['power']}/{oracle_card['toughness']}",
+            #TODO account for double faced cards
+            "power": oracle_card['power'],
+            "toughness": oracle_card['toughness'],
             "types": ', '.join(oracle_card['types']),
             "mana_production": oracle_card['manaProduction'],
             "tcg_price": 0 if card['card']['prices']['tcg'] is None else card['card']['prices']['tcg'],
