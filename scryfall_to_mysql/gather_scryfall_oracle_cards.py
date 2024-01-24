@@ -9,6 +9,15 @@ scryfall_bulk_data_url = "https://api.scryfall.com/bulk-data"
 scryfall_bulk_urls_data = requests.get(scryfall_bulk_data_url)
 scryfall_bulk_url_json_data = json.loads(scryfall_bulk_urls_data.text)
 
+#  get url specifically for oracle cards.
+'''
+ From Scryfall:
+ description: A JSON file containing one Scryfall card object
+            for each Oracle ID on Scryfall. The chosen sets for
+            the cards are an attempt to return the most up-to-date
+            recognizable version of the card.
+'''
+
 
 def get_oracle_cards_url():
     oracle_cards_download_url = ""
@@ -25,14 +34,7 @@ card_data = requests.get(get_oracle_cards_url())
 card_data_json = json.loads(card_data.text)
 
 
-def get_card_oracle_ids():
-    card_oracle_id_list = []
-
-    for card in card_data_json:
-        card_oracle_id_list.append(card['oracle_id'])
-    return card_oracle_id_list
-
-
+# get the data I want for each card.
 def stage_normal_card_data():
     cards = []
     for stage_card in card_data_json:
@@ -58,7 +60,11 @@ def stage_normal_card_data():
     return cards
 
 
+# TODO: same function but for tokens, then populate token table
+
+
 if __name__ == "__main__":
+    # replace these arguments with your db info
     engine = create_engine_instance('username', 'password', 'host', 'db')
     Base.metadata.create_all(bind=engine)
     Session = sessionmaker(bind=engine)
