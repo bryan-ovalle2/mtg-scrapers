@@ -3,7 +3,6 @@ from sqlalchemy.orm import declarative_base
 from database_config import create_engine_instance
 
 Base = declarative_base()
-engine = create_engine_instance("root", "", "localhost", "mtg")
 
 
 class OracleCard(Base):
