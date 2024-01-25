@@ -66,8 +66,7 @@ def stage_normal_card_data():
 
 if __name__ == "__main__":
     # replace these arguments with your db info
-    # engine = create_engine_instance('username', 'password', 'host', 'db')
-    engine = create_engine_instance('root', '', 'localhost', 'mtg')
+    engine = create_engine_instance('username', 'password', 'host', 'database')
     Base.metadata.create_all(bind=engine)
     Session = sessionmaker(bind=engine)
 
