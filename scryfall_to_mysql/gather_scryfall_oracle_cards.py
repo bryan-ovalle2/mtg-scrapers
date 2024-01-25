@@ -79,8 +79,6 @@ if __name__ == "__main__":
             with alive_bar(total_iterations) as bar:
                 for i, card_data in enumerate(stage_normal_card_data()):
                     scryfall_id = card_data['scryfall_id']
-                    card_name = card_data['name']
-
                     existing_card = session.merge(OracleCard(**card_data), load=True)
                     if existing_card is None:
                         cards_to_insert.append(card_data)
