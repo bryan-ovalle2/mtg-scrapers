@@ -3,6 +3,7 @@ import json
 from database_config import create_engine_instance
 from sqlalchemy.orm import sessionmaker
 from mtg_card_db_models import Base, OracleCard
+from alive_progress import alive_bar
 
 # get bulk data download urls
 scryfall_bulk_data_url = "https://api.scryfall.com/bulk-data"
@@ -65,7 +66,8 @@ def stage_normal_card_data():
 
 if __name__ == "__main__":
     # replace these arguments with your db info
-    engine = create_engine_instance('username', 'password', 'host', 'db')
+    # engine = create_engine_instance('username', 'password', 'host', 'db')
+    engine = create_engine_instance('root', '', 'localhost', 'mtg')
     Base.metadata.create_all(bind=engine)
     Session = sessionmaker(bind=engine)
 
@@ -74,14 +76,16 @@ if __name__ == "__main__":
             existing_scryfall_ids = set(session.query(OracleCard.scryfall_id).all())
 
             cards_to_insert = []
-            for i, card_data in enumerate(stage_normal_card_data()):
-                scryfall_id = card_data['scryfall_id']
-                card_name = card_data['name']
+            total_iterations = len(stage_normal_card_data())
+            with alive_bar(total_iterations) as bar:
+                for i, card_data in enumerate(stage_normal_card_data()):
+                    scryfall_id = card_data['scryfall_id']
+                    card_name = card_data['name']
 
-                existing_card = session.merge(OracleCard(**card_data), load=True)
-                if existing_card is None:
-                    print(f"Processing row {i} {scryfall_id} - {card_name}")
-                    cards_to_insert.append(card_data)
+                    existing_card = session.merge(OracleCard(**card_data), load=True)
+                    if existing_card is None:
+                        cards_to_insert.append(card_data)
+                    bar()
 
             if cards_to_insert:
                 staged_cards_len = len(cards_to_insert)
