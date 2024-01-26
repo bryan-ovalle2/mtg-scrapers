@@ -45,10 +45,10 @@ def get_complete_scryfall_ids(card_type):
 
 
 # get the data I want for each card.
-def stage_normal_card_data():
+def stage_card_data():
     cards = []
     for stage_card in card_data_json:
-        if stage_card['layout'] == "normal" and stage_card['id'] in new_scryfall_ids:
+        if stage_card['id'] in new_scryfall_ids:
             cards.append(
                 {
                     'scryfall_id': stage_card['id'],
@@ -88,7 +88,7 @@ if __name__ == "__main__":
             cards_to_insert = []
             total_iterations = len(new_scryfall_ids)
             with alive_bar(total_iterations, force_tty=True) as bar:
-                for i, card_data in enumerate(stage_normal_card_data()):
+                for i, card_data in enumerate(stage_card_data()):
                     cards_to_insert.append(card_data)
                     bar()
 
