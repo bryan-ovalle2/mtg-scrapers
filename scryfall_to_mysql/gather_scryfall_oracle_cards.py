@@ -27,6 +27,7 @@ def get_oracle_cards_url():
             oracle_cards_download_url = bulk_uri['download_uri']
         else:
             continue
+        print(f"Using {oracle_cards_download_url} as bulk download URL")
     return oracle_cards_download_url
 
 
@@ -35,11 +36,19 @@ card_data = requests.get(get_oracle_cards_url())
 card_data_json = json.loads(card_data.text)
 
 
+def get_complete_scryfall_ids(card_type):
+    scryfall_card_ids = []
+    for card in card_data_json:
+        if card['layout'] == card_type:
+            scryfall_card_ids.append(card['id'])
+    return scryfall_card_ids
+
+
 # get the data I want for each card.
 def stage_normal_card_data():
     cards = []
     for stage_card in card_data_json:
-        if stage_card['layout'] == "normal":
+        if stage_card['layout'] == "normal" and stage_card['id'] in new_scryfall_ids:
             cards.append(
                 {
                     'scryfall_id': stage_card['id'],
@@ -66,33 +75,30 @@ def stage_normal_card_data():
 
 if __name__ == "__main__":
     # replace these arguments with your db info
-    engine = create_engine_instance('username', 'password', 'host', 'database')
+    engine = create_engine_instance('root', '', 'localhost', 'mtg')
     Base.metadata.create_all(bind=engine)
     Session = sessionmaker(bind=engine)
 
     try:
         with Session() as session:
-            existing_scryfall_ids = set(session.query(OracleCard.scryfall_id).all())
+            existing_scryfall_ids = session.query(OracleCard.scryfall_id).all()
+            cleaned_existing_ids = [i[0] for i in existing_scryfall_ids]
+            new_scryfall_ids = [value for value in get_complete_scryfall_ids('normal') if value not in cleaned_existing_ids]
 
             cards_to_insert = []
-            total_iterations = len(stage_normal_card_data())
-            with alive_bar(total_iterations) as bar:
+            total_iterations = len(new_scryfall_ids)
+            with alive_bar(total_iterations, force_tty=True) as bar:
                 for i, card_data in enumerate(stage_normal_card_data()):
-                    scryfall_id = card_data['scryfall_id']
-                    existing_card = session.merge(OracleCard(**card_data), load=True)
-                    if existing_card is None:
-                        cards_to_insert.append(card_data)
+                    cards_to_insert.append(card_data)
                     bar()
 
-            if cards_to_insert:
-                staged_cards_len = len(cards_to_insert)
-                session.bulk_save_objects([OracleCard(**card) for card in cards_to_insert])
-                print(f"{staged_cards_len} cards inserted successfully")
-            else:
-                print("No new records to insert.")
+        if cards_to_insert:
+            staged_cards_len = len(cards_to_insert)
+            session.add_all([OracleCard(**card) for card in cards_to_insert])
+            session.commit()
+            print(f"{staged_cards_len} cards inserted successfully")
+        else:
+            print("No new records to insert.")
 
     except Exception as e:
         print(f"Error: {e}")
-
-    finally:
-        session.close()
