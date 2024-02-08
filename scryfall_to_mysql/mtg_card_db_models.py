@@ -119,3 +119,11 @@ class TokensForCreatures(Base):
     type_line = Column("type_line", String(60))
     power_toughness = Column("power_toughness", String(5))
 
+    def __init__(self, scryfall_id, parent_scryfall_id, name, type_line, power_toughness):
+
+        self.scryfall_id = scryfall_id
+        self.parent_scryfall_id = parent_scryfall_id
+        self.name = name
+        self.type_line = type_line
+        self.power_toughness = power_toughness
+

@@ -38,9 +38,11 @@ card_data_json = json.loads(card_data.text)
 
 def get_complete_scryfall_ids(card_type):
     scryfall_card_ids = []
-    for card in card_data_json:
-        if card['layout'] == card_type:
-            scryfall_card_ids.append(card['id'])
+    with alive_bar(len(card_data_json), force_tty=True) as all_cards_bar:
+        for card in card_data_json:
+            if card['layout'] == card_type:
+                scryfall_card_ids.append(card['id'])
+            all_cards_bar()
     return scryfall_card_ids
 
 
